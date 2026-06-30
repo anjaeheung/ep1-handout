@@ -80,6 +80,10 @@ function render(blocks){
     else if(b.p!=null) doc.appendChild(el('div','p',b.p));
   });
   doc.appendChild(el('div','foot','— 묵독 후, 자유롭게 대화를 시작하세요 —'));
+  const nb=el('button',null,'다음으로 →');
+  nb.style.cssText='display:block;margin:18px auto 0;background:linear-gradient(180deg,#243047,#1a2235);border:1px solid var(--gold);color:var(--gold);font-weight:800;padding:12px 24px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:14px';
+  nb.addEventListener('click',()=>{ window.location.href='https://anjaeheung.github.io/ep1-intermission/'; });
+  doc.appendChild(nb);
   gate.style.display='none'; doc.style.display='block'; window.scrollTo(0,0);
 }
 async function submit(){
