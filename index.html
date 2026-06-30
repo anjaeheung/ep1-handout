@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>제1편 · 눈의 장 — 개인 핸드아웃</title>
+<style>
+  :root{--bg:#0c0e13;--panel:#141925;--line:#2a3040;--ink:#e9ecf2;--muted:#8b93a6;--gold:#ffd54a;--accent:#7ee0c0;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(130% 90% at 50% 0%,#161b27 0%,var(--bg) 60%);color:var(--ink);
+    font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;line-height:1.85;}
+  .wrap{max-width:680px;margin:0 auto;padding:22px 18px 70px}
+  /* 게이트 */
+  #gate{max-width:380px;margin:14vh auto 0;text-align:center;background:linear-gradient(180deg,#1a1f2c,#141823);
+    border:1px solid var(--line);border-radius:16px;padding:26px 22px;display:flex;flex-direction:column;gap:12px}
+  #gate .lk{font-size:30px}
+  #gate h2{margin:0;font-size:15px;letter-spacing:2px;color:#dfe3ea}
+  #gate p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.7}
+  #gate .inrow{display:flex;gap:8px;justify-content:center;margin-top:4px}
+  #gate input{background:#0e1118;border:1px solid var(--line);color:var(--ink);padding:11px 14px;border-radius:10px;
+    font-size:16px;font-family:inherit;width:150px;text-align:center;letter-spacing:3px}
+  #gate input:focus{outline:none;border-color:var(--gold)}
+  #gate button{background:linear-gradient(180deg,#243047,#1a2235);border:1px solid var(--gold);color:var(--gold);
+    font-weight:800;padding:11px 18px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:14px}
+  #gate button:hover{background:#2a3550;color:#fff}
+  #gate .err{font-size:12.5px;color:#ff8585;min-height:16px}
+  /* 핸드아웃 문서 */
+  #doc{display:none}
+  .ti{font-size:21px;font-weight:800;letter-spacing:1px;color:#fff;margin:0 0 2px}
+  .subt{font-size:13px;color:var(--accent);letter-spacing:1px;margin:0 0 14px;font-weight:700}
+  .warn{background:#2a1d1d;border:1px solid #6a3a3a;color:#ffc9c9;border-radius:10px;padding:10px 14px;
+    font-size:12.5px;margin:0 0 18px;letter-spacing:.3px}
+  .warn::before{content:"※ "}
+  .p{font-size:14.5px;color:#dde2ec;margin:11px 0;white-space:pre-wrap}
+  .quote{margin:13px 0;padding:11px 16px;border-left:3px solid var(--accent);background:#121a20;border-radius:0 10px 10px 0;
+    color:#cdeadf;font-size:14px;white-space:pre-wrap;font-style:italic}
+  .h{font-size:15px;font-weight:800;color:var(--gold);margin:24px 0 6px;padding-bottom:5px;border-bottom:1px solid #3a3320;letter-spacing:.5px}
+  .h::before{content:"◆ "}
+  .li{font-size:14px;color:#dadfea;margin:6px 0 6px 4px;padding-left:14px;position:relative;white-space:pre-wrap}
+  .li::before{content:"•";position:absolute;left:0;color:var(--accent)}
+  .star{font-size:14px;color:#fff;margin:9px 0;padding:9px 13px;background:#1c2233;border:1px solid #34406040;
+    border-left:3px solid var(--gold);border-radius:0 9px 9px 0;white-space:pre-wrap}
+  .star::before{content:"★ ";color:var(--gold)}
+  .foot{margin-top:34px;text-align:center;font-size:11.5px;color:#54607a;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate">
+    <div class="lk">🔒</div>
+    <h2>개인 핸드아웃</h2>
+    <p>진행자에게 받은 <b>자신의 비밀번호</b>를 입력하세요.<br>본인 캐릭터의 핸드아웃만 열립니다.</p>
+    <div class="inrow"><input id="pw" type="text" inputmode="numeric" autocomplete="off" placeholder="••••"><button id="pwbtn">확인</button></div>
+    <div class="err" id="pwerr"></div>
+  </div>
+  <div id="doc"></div>
+</div>
+<script src="enc.js"></script>
+<script>
+const doc=document.getElementById('doc'),gate=document.getElementById('gate'),
+  pwInput=document.getElementById('pw'),pwBtn=document.getElementById('pwbtn'),pwErr=document.getElementById('pwerr');
+function el(t,c,tx){const e=document.createElement(t);if(c)e.className=c;if(tx!=null)e.textContent=tx;return e;}
+async function decryptBlob(b64,pw){
+  const raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));const salt=raw.slice(0,16),iv=raw.slice(16,28),ct=raw.slice(28);
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct)));
+}
+function render(blocks){
+  doc.innerHTML='';
+  blocks.forEach(b=>{
+    if(b.t!=null) doc.appendChild(el('div','ti',b.t));
+    else if(b.sub!=null) doc.appendChild(el('div','subt',b.sub));
+    else if(b.warn!=null) doc.appendChild(el('div','warn',b.warn));
+    else if(b.quote!=null) doc.appendChild(el('div','quote',b.quote));
+    else if(b.h!=null) doc.appendChild(el('div','h',b.h));
+    else if(b.star!=null) doc.appendChild(el('div','star',b.star));
+    else if(b.li!=null) doc.appendChild(el('div','li',b.li));
+    else if(b.p!=null) doc.appendChild(el('div','p',b.p));
+  });
+  doc.appendChild(el('div','foot','— 묵독 후, 자유롭게 대화를 시작하세요 —'));
+  gate.style.display='none'; doc.style.display='block'; window.scrollTo(0,0);
+}
+async function submit(){
+  const pw=(pwInput.value||'').trim(); if(!pw)return;
+  pwBtn.disabled=true; pwErr.style.color='var(--muted)'; pwErr.textContent='확인 중…';
+  for(const k of Object.keys(window.HO||{})){ try{ const b=await decryptBlob(window.HO[k],pw); render(b); return; }catch(e){} }
+  pwBtn.disabled=false; pwErr.style.color='#ff8585'; pwErr.textContent='비밀번호가 올바르지 않습니다.';
+}
+pwBtn.addEventListener('click',submit);
+pwInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
+pwInput.focus();
+</script>
+</body>
+</html>
